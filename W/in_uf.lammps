@@ -1,0 +1,35 @@
+# LAMMPS commands for DDOS
+# Must provide a compute
+#       global_descriptor_compute_name
+# which returns a global average descriptor of size
+#        descriptor_size
+
+clear
+atom_style atomic
+atom_modify map array sort 0 0.0
+units           metal
+boundary        p p p
+neighbor 2.0 bin
+neigh_modify once no every 1 delay 0 check yes
+
+# placeholder, always overwritten in python (input_path/input_data)
+read_data ./configurations/W-liquid.dat
+
+mass * 183.84 # will also be overwritten
+
+# Uhlenbeck-Ford reference fluid: pair_coeff is "epsilon sigma" (epsilon = p*kB*T_ref,
+# see UhlenbeckFordDisplacer in Displacers.py), not a file - can be overwritten in
+# python like the file-based potentials, see LAMMPSWorker.start_lammps
+pair_style ufm 5.0
+pair_coeff * * PLACEHOLDER_EPSILON PLACEHOLDER_SIGMA
+
+thermo          1
+thermo_modify norm no
+
+# The descriptor compute - matches W_2940_2017_2.snapparam exactly (real
+# Wood & Thompson 2017 SNAP fit for W), independent of pair_style above
+compute D all sna/atom 4.73442 0.99363 8 0.5 1 rmin0 0 bzeroflag 0 quadraticflag 0
+compute aveD all reduce ave c_D[*]
+
+reset_timestep	0
+run           	0

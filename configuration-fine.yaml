@@ -1,0 +1,52 @@
+# Fichier : config_W.yaml
+
+# Paramètres généraux
+mass: 183.84
+temperature: 2000.0
+displacer_type: "Kinetic"
+
+# Grille d'échantillonnage
+strains: [0.0]
+isosurfaces: [0.0, 0.5, 1.0]
+
+# --- CORRECTION DES CLÉS POUR LAMMPS ---
+# Le code cherche 'data_file' (et non 'init_structure')
+data_file: "/volatile/home/gp285244/Documents/DescriptorDOS/examples/W/W_BCC.data"
+
+# Le code cherche 'snapcoeff' et 'snapparam' (sans underscore)
+snapcoeff: "/volatile/home/gp285244/Documents/DescriptorDOS/examples/W/X_W.snapcoeff"
+snapparam: "/volatile/home/gp285244/Documents/DescriptorDOS/examples/W/W.snap"
+# Output directory
+dump_path: output
+
+# relative to dump_path
+hessian_data : "Hessian-Data-All-Strains.pkl" # in dump_path
+
+# Data file - will append isosurface type and save as pickle file
+dump_file: "Histograms-bcc-fine"
+
+# Dictionary of adjustable parameters with range in low,high,steps
+# IsoSurface is the isosurface value, 1.0 corresponds to T~=1000K
+input_parameters:
+  IsoSurface: [0.2, 4.4, 22]  # exp alpha bounds
+  Strain: [0.00, 0.00, 1]  # volumetric strain bounds
+
+# TOTAL force calls for each value of alpha
+default_calls : 256
+
+# Histogram bins per degree of freedom
+histogram_bins : 100
+
+# CPU cores per worker
+procs_per_worker : 1 # Optimal value is 1 unless memory limited
+
+verbose : False
+
+# LAMMPS input script
+lammps_input_script: "W/in.lammps"
+
+# MUST correspond to compute in LAMMPS script!
+global_descriptor_compute_name : "aveD"
+
+
+

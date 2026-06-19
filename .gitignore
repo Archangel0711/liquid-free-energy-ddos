@@ -1,0 +1,8 @@
+# raw NVE trajectories are large and regenerable (see the trajectory-generation
+# cell in liquid_free_energy.ipynb) - everything else is kept
+W/configurations/*.lammpstrj
+
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+log.lammps
