@@ -1,0 +1,223 @@
+Host: irene4187  NProc: 1600  Dir: /ccc/work/cont002/gen6821/marinica/targetH2O/bccW/BABF/h24_bcc
+lammps + mpi4py import OK
+[Minimization] cg -> |f|_max = 3.067e-15 eV/A (target 5.0e-03)
+[Minimization] saved ./mab_work/minimized_bcc.extxyz (extxyz)
+        
+                ┳┳┓  ┓ 
+            ┏┓┓┏┃┃┃┏┓┣┓
+            ┣┛┗┫┛ ┗┗┻┗┛
+            ┛  ┛                                                               
+        
+        copyleft CEA by ...                                        
+        ... C. Lapointe, A. Zhong, M. Athenes, T.D.S Swinburne,, M.-C. Marinica     
+        other contributions                                        
+        L. Cao, G. Stoltz, T. Lelievre                             
+        email:mihai-cosmin.marinica@cea.fr, clovis.lapointe@cea.fr
+        
+
+        Working Directory:
+            ./mab_work
+        Configuration:
+            ../../../../inputs/out_W_bcc_444.lmp
+        
+        
+        Scripts:
+        
+                Inputs: 
+                    units metal
+atom_style atomic
+atom_modify map array sort 0 0.0
+read_data  %Configuration%
+pair_style    snap
+pair_coeff * * %Potential%  ../../../../inputs/D.snapparam  %Species%
+group      %Species% type 1
+mass       1   183.85
+run 0
+thermo 10
+run 0
+        
+        Parameters:
+        
+                    CoresPerWorker: 4
+                    GlobalSeed: 14237519
+                    Verbose: False
+                    LogLammps: False
+                    Temperature: 3000.0
+                    LambdaGrid:
+                                Min = 0.0
+                                Max = 1.0
+                                Number = 1000
+                                Rbuffer = 0.0
+                                NumberBuffer = 0
+                    ThermalisationStep: 200
+                    StochasticSteps: 50000
+                    WritingStep: 1000
+                    GatherStep: 10
+                    WorkingDirectory: ./mab_work
+                    Configuration: ../../../../inputs/out_W_bcc_444.lmp
+                    Species: W
+                    Dynamic: OverdampedLangevin
+                    DeltaT: 0.002
+                    Friction: 100.0
+                    Minimization: True
+                    min_forces: 0.005
+                    min_style: cg
+                    min_maxiter: 10000
+                    min_maxeval: 100000
+                    min_save_config: True
+                    min_format: extxyz
+                    min_savepath: minimized_bcc
+                    WeightsTrajectory: linear
+                    TI_formalism: lambda_linear
+                    Estimator: BABF
+                    ABF:
+                                ShareBias = True
+                                DeltaTLambda = 0.0
+                                FrictionLambda = 0.0
+                                MinCountBias = 1
+                    ReferenceModel:
+                                model = Harmonic_24
+                                omega = 5.0
+                                get_hessian = compute
+                                step_displacement = 0.01
+                                hessian_order = 2
+                                HessianPath = hessian.h5
+                                nstep_for_scale = 10000
+                                scale_mu = 0.001
+                                scale_kappa_min = 0.01
+                                RescaledHessianPath = hessian_rescaled.h5
+                                WeightsInReference = False
+                                alpha_rescale = 0.5
+                                scale_mu_k = 0.01
+                                scale_mu_gamma = 0.01
+                                harmonic_groups = 8
+                                uf_p = 100
+                                uf_x = 0.5
+                                uf_sigma = 0.0
+                                uf_rcut = 0.0
+                                uf_rcut_in_sigma = 5.0
+                                uf_spline_path = 
+                                uf_neighbor = kdtree
+                                uf_skin = 0.5
+                                uf_prepared_liquid = True
+                                uf_premelt_overheat = 1.6
+                                uf_premelt_T_melt = 0.0
+                                uf_premelt_steps_melt = 20000
+                                uf_premelt_steps_quench = 20000
+                                uf_premelt_steps_equil = 50000
+                                uf_premelt_damp = 0.1
+                    ConstrainedPotential:
+                                model = Standard
+                                C = 1.0
+                                delta = 1.0
+                                Rc = 0.0
+                    Block: False
+                    Restart:
+                                Activate = False
+                                PathH5 = Not set
+                    KLModify: False
+                    Jarzynski: False
+0:00:05.182 | PYMAB | ... Building Hessian by finite differences (order=2, step=1.000e-02 A, 384 d.o.f. over 400 worker(s)) ...
+0:00:05.430 | PYMAB | ... Hessian and spectrum written to ./mab_work/hessian.h5 ...
+0:00:05.705 | PYMAB | 
+        Initialized 400 workers with 4 cores
+        < > == time averages,  av/err over ensemble
+        
+0:00:05.706 | PYMAB | ... Starting thermalisation procedure ... (2.0e+02 steps)
+0:00:05.941 | PYMAB | ... Finishing thermalisation procedure ...
+0:00:05.941 | PYMAB | 
+0:00:05.941 | PYMAB | ... Starting 2-4 reference pilot (1.0e+04 steps, 8 groups) ...
+0:09:22.515 | PYMAB | ... 2-4 fit (alpha=0.50): J_TI/V_c=0.0043  J_score/FF=0.0368  (ok) ...
+0:09:22.516 | PYMAB | ...   loss share: alpha*TI=0.0021 (10.1%)  (1-alpha)*score=0.0184 (86.9%)  reg=0.0007 (3.1%)  total=0.0212 ...
+0:09:22.556 | PYMAB | ... 2-4 reference written to ./mab_work/hessian_rescaled.h5 ...
+0:09:22.556 | PYMAB | ... 2-4 reference fitted; starting production (§3.6.6) ...
+0:09:22.556 | PYMAB | 
+0:09:22.557 | PYMAB |                Langevin step              Temperature [K]         <d_lambda F(1)> [eV]                    A(1) [eV] < A(1) - < A(1) > >^2 [eV^2] 
+0:10:02.492 | PYMAB |                         1000                 1506.1235113                   -0.2035047                    0.8859777                          0.0 
+0:10:42.273 | PYMAB |                         2000                 1562.6293576                   -0.0985156                    0.9577973                          0.0 
+0:11:22.064 | PYMAB |                         3000                 1565.0202321                   -0.0812393                    1.0159214                          0.0 
+0:12:01.869 | PYMAB |                         4000                 1652.7072933                     -0.10469                    1.0449512                          0.0 
+0:12:41.698 | PYMAB |                         5000                 1713.9359442                   -0.1573589                    1.0610576                          0.0 
+0:13:21.525 | PYMAB |                         6000                 1521.0835663                   -0.1601646                    1.0753001                          0.0 
+0:14:01.313 | PYMAB |                         7000                 1483.4520354                   -0.1928007                    1.0835074                          0.0 
+0:14:41.079 | PYMAB |                         8000                  1431.476459                   -0.2423871                    1.0899189                          0.0 
+0:15:20.794 | PYMAB |                         9000                 1510.0207147                   -0.2752808                    1.0978054                          0.0 
+0:16:00.564 | PYMAB |                        10000                 1588.5024688                   -0.2720957                    1.1057456                          0.0 
+0:16:40.296 | PYMAB |                        11000                 1564.7967947                   -0.2974893                     1.109623                          0.0 
+0:17:20.046 | PYMAB |                        12000                 1589.2921432                   -0.3352337                    1.1110133                          0.0 
+0:17:59.757 | PYMAB |                        13000                  1733.747394                   -0.3510858                     1.110176                          0.0 
+0:18:39.548 | PYMAB |                        14000                 1748.5966037                   -0.3485198                    1.1109134                          0.0 
+0:19:19.316 | PYMAB |                        15000                 1773.9699995                   -0.3736087                    1.1079561                          0.0 
+0:19:59.099 | PYMAB |                        16000                 1629.7823471                   -0.3875262                    1.1061905                          0.0 
+0:20:38.846 | PYMAB |                        17000                  1457.673707                   -0.4026202                    1.1054582                          0.0 
+0:21:18.570 | PYMAB |                        18000                 1480.9495534                   -0.4123705                    1.1037332                          0.0 
+0:21:58.344 | PYMAB |                        19000                 1571.0915252                   -0.4125741                    1.1037515                          0.0 
+0:22:38.050 | PYMAB |                        20000                 1544.1812611                   -0.4045304                    1.1040023                          0.0 
+0:23:17.833 | PYMAB |                        21000                 1698.0895493                   -0.4036254                    1.1059651                          0.0 
+0:23:57.621 | PYMAB |                        22000                 1681.3823051                    -0.398638                    1.1083367                          0.0 
+0:24:37.388 | PYMAB |                        23000                 1702.1416384                   -0.3899169                    1.1105692                          0.0 
+0:25:17.165 | PYMAB |                        24000                 1513.6979142                   -0.3788189                    1.1105717                          0.0 
+0:25:56.830 | PYMAB |                        25000                  1557.374525                   -0.3719035                    1.1092247                          0.0 
+0:26:36.580 | PYMAB |                        26000                 1557.0802437                   -0.3654866                    1.1077899                          0.0 
+0:27:16.327 | PYMAB |                        27000                  1762.912522                   -0.3536465                    1.1081795                          0.0 
+0:27:56.065 | PYMAB |                        28000                 1757.9630465                   -0.3466634                    1.1082644                          0.0 
+0:28:35.877 | PYMAB |                        29000                 1686.1768644                   -0.3466178                    1.1098236                          0.0 
+0:29:15.596 | PYMAB |                        30000                 1560.9066451                   -0.3433795                    1.1107751                          0.0 
+0:29:55.379 | PYMAB |                        31000                 1544.8679586                   -0.3369705                    1.1116896                          0.0 
+0:30:35.141 | PYMAB |                        32000                 1590.8084046                   -0.3303402                    1.1117834                          0.0 
+0:31:14.949 | PYMAB |                        33000                 1740.1225436                   -0.3213025                    1.1129602                          0.0 
+0:31:54.704 | PYMAB |                        34000                 1819.2964806                   -0.3236745                    1.1136009                          0.0 
+0:32:34.496 | PYMAB |                        35000                 1942.0420337                   -0.3211713                    1.1142281                          0.0 
+0:33:14.279 | PYMAB |                        36000                 1533.1530811                   -0.3190645                    1.1143967                          0.0 
+0:33:54.101 | PYMAB |                        37000                 1694.3069299                   -0.3217194                    1.1129002                          0.0 
+0:34:33.880 | PYMAB |                        38000                 1504.5028305                   -0.3239095                    1.1116019                          0.0 
+0:35:13.631 | PYMAB |                        39000                 1381.7811781                   -0.3267287                    1.1113898                          0.0 
+0:35:53.424 | PYMAB |                        40000                 1618.5401298                   -0.3278336                    1.1133666                          0.0 
+0:36:33.245 | PYMAB |                        41000                 1654.1974859                   -0.3234434                     1.116351                          0.0 
+0:37:13.050 | PYMAB |                        42000                 1815.7213866                   -0.3260067                    1.1176338                          0.0 
+0:37:52.873 | PYMAB |                        43000                 1729.1803126                   -0.3292413                    1.1180646                          0.0 
+0:38:32.703 | PYMAB |                        44000                 1640.0853224                   -0.3299989                    1.1185178                          0.0 
+0:39:12.559 | PYMAB |                        45000                  1605.783364                   -0.3313089                    1.1188201                          0.0 
+0:39:52.429 | PYMAB |                        46000                 1613.0696813                   -0.3351832                     1.117734                          0.0 
+0:40:32.283 | PYMAB |                        47000                 1524.8502706                   -0.3391284                    1.1163479                          0.0 
+0:41:12.029 | PYMAB |                        48000                 1394.7787173                    -0.335514                    1.1155898                          0.0 
+0:41:51.836 | PYMAB |                        49000                 1375.6299918                   -0.3309639                    1.1144802                          0.0 
+0:42:31.563 | PYMAB | 
+0:42:31.563 | PYMAB |        [FREE ENERGY RESULTS] 
+0:42:31.563 | PYMAB |     U(q0) [0K static energy] = -540.2035693554321 eV 
+0:42:31.563 | PYMAB |     F_ref = -250.7318093780079 eV 
+0:42:31.563 | PYMAB |     A(1) = 1.1127061160854779 eV 
+0:42:31.563 | PYMAB |     F(1) = F_ref + A(1) = -249.61910326192242 eV   (thermal, excl. U(q0)) 
+0:42:31.563 | PYMAB |     F_Helmholtz = U(q0) + F(1) = -789.8226726173546 eV   (total absolute) 
+0:42:31.563 | PYMAB |     sigma[F(1)] = 1.3610174527971116e-05 eV 
+########## ########## ########## ########## ########## ########## ########## ##########
+Execution Sum Up
+########## ########## ########## ########## ########## ########## ########## ##########
+Jobid     : 5114420
+Jobname   : BAh24_babf
+User      : marinica
+Account   : desdrmp@rome
+Limits    : time = 23:00:00 , memory/job = 1775 Mo
+Date      : submit = 08/07/2026 11:20:54 , start = 08/07/2026 11:21:26 , end = 09/07/2026 10:21:26
+Execution : partition = rome , QoS = normal , Comment = (null)
+Resources : ntasks = 1664 , cpus/task = 1 , ncpus = 1664 , nodes = 13
+   Nodes=irene[4187,4197,4225,4234,4303,4359,4448,4933,5401,5447,5455,5857,5879] CPU_IDs=0-255 Mem=227200 GRES=
+ 
+Memory / step 
+--------------
+                          Resident Size (Mo)                     Virtual Size (Go)
+JobID            Max     (Node:Task)       AveTask    Max  (Node:Task)            AveTask
+-----------      ------------------------  -------    --------------------------  -------
+5114420.extern       0 (            :   0)       0      0.00 (            :   0)    0.00
+5114420.batch     2005 (irene4187   :   0)       5      1.00 (irene4187   :   0)    1.00
+
+Accounting / step 
+------------------
+
+JobID           JobName                  Ntasks  Ncpus Nnodes  Layout       Elapsed               User         System     Eff  State
+------------    ------------             ------  ----- ------  -------      -------               -------      ------     ---  -----
+5114420         BAh24_babf                    -   1664     13        -     00:43:32   (100%)            -            -      -  -
+5114420.batch   batch                         1    128      1  Unknown     00:43:32   (100%)     00:00:00     00:00:00      0  RUNNING
+5114420.extern  extern                       13   1664     13  Unknown     00:43:32 (100.0%)     00:00:00     00:00:00      0  RUNNING
+5114420.0       python                     1600   1600     13   BBlock     00:43:09  (99.1%)  42-04:42:01   4-20:06:45   98.1  COMPLETED
+########## ########## ########## ########## ########## ########## ########## ##########

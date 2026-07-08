@@ -1,0 +1,34 @@
+# LAMMPS commands for DDOS -- bcc Tungsten (SNAP)
+# Must provide a compute
+#       global_descriptor_compute_name  (here: aveD)
+# which returns a global average descriptor of size
+#       descriptor_size                 (here: 55, twojmax=8)
+
+clear
+atom_style atomic
+atom_modify map array sort 0 0.0
+units           metal
+boundary        p p p
+neighbor 2.0 bin
+neigh_modify once no every 1 delay 0 check yes
+
+# read_data / mass / pair_coeff below are DEFAULTS and are overwritten
+# from python (lammps_input_configuration, mass, pair_coeff kwargs).
+read_data structures/W-bcc.data
+
+mass * 183.84 # W, overwritten in python
+
+# potential used only for the isosurface -- does NOT have to match the descriptor!
+# We label the element X to emphasize the alchemical nature.
+pair_style snap
+pair_coeff * * models/W/X_W.snapcoeff models/W/D.snapparam X
+
+thermo          1
+thermo_modify norm no
+
+# The descriptor compute (rcutfac rfac0 twojmax R_1 w_1) -- must match D.snapparam
+compute D all sna/atom 4.7 0.99363 8 0.5 1
+compute aveD all reduce ave c_D[*]
+
+reset_timestep	0
+run           	0

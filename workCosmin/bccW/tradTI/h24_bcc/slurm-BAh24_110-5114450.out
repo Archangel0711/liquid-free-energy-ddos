@@ -1,0 +1,174 @@
+Host: irene4205  NProc: 1600  Dir: /ccc/work/cont002/gen6821/marinica/targetH2O/bccW/tradTI/h24_bcc
+lammps + mpi4py import OK
+[Minimization] cg -> |f|_max = 3.067e-15 eV/A (target 5.0e-03)
+[Minimization] saved ./mab_work/minimized_bcc.extxyz (extxyz)
+        
+                ┳┳┓  ┓ 
+            ┏┓┓┏┃┃┃┏┓┣┓
+            ┣┛┗┫┛ ┗┗┻┗┛
+            ┛  ┛                                                               
+        
+        copyleft CEA by ...                                        
+        ... C. Lapointe, A. Zhong, M. Athenes, T.D.S Swinburne,, M.-C. Marinica     
+        other contributions                                        
+        L. Cao, G. Stoltz, T. Lelievre                             
+        email:mihai-cosmin.marinica@cea.fr, clovis.lapointe@cea.fr
+        
+
+        Working Directory:
+            ./mab_work
+        Configuration:
+            ../../../../inputs/out_W_bcc_444.lmp
+        
+        
+        Scripts:
+        
+                Inputs: 
+                    units metal
+atom_style atomic
+atom_modify map array sort 0 0.0
+read_data  %Configuration%
+pair_style    snap
+pair_coeff * * %Potential%  ../../../../inputs/D.snapparam  %Species%
+group      %Species% type 1
+mass       1   183.85
+run 0
+thermo 10
+run 0
+        
+        Parameters:
+        
+                    CoresPerWorker: 4
+                    GlobalSeed: 14237519
+                    Verbose: False
+                    LogLammps: False
+                    Temperature: 3000.0
+                    LambdaGrid:
+                                Min = 0.0
+                                Max = 1.0
+                                Number = 400
+                                Rbuffer = 0.0
+                                NumberBuffer = 0
+                    ThermalisationStep: 200
+                    StochasticSteps: 50000
+                    WritingStep: 1000
+                    GatherStep: 10
+                    WorkingDirectory: ./mab_work
+                    Configuration: ../../../../inputs/out_W_bcc_444.lmp
+                    Species: W
+                    Dynamic: OverdampedLangevin
+                    DeltaT: 0.002
+                    Friction: 100.0
+                    Minimization: True
+                    min_forces: 0.005
+                    min_style: cg
+                    min_maxiter: 10000
+                    min_maxeval: 100000
+                    min_save_config: True
+                    min_format: extxyz
+                    min_savepath: minimized_bcc
+                    WeightsTrajectory: linear
+                    TI_formalism: lambda_linear
+                    Estimator: tradTI
+                    ABF:
+                                ShareBias = True
+                                DeltaTLambda = 0.0
+                                FrictionLambda = 0.0
+                                MinCountBias = 1
+                    ReferenceModel:
+                                model = Harmonic_24
+                                omega = 5.0
+                                get_hessian = compute
+                                step_displacement = 0.01
+                                hessian_order = 2
+                                HessianPath = hessian.h5
+                                nstep_for_scale = 10000
+                                scale_mu = 0.001
+                                scale_kappa_min = 0.01
+                                RescaledHessianPath = hessian_rescaled.h5
+                                WeightsInReference = False
+                                alpha_rescale = 0.5
+                                scale_mu_k = 0.01
+                                scale_mu_gamma = 0.01
+                                harmonic_groups = 8
+                                uf_p = 100
+                                uf_x = 0.5
+                                uf_sigma = 0.0
+                                uf_rcut = 0.0
+                                uf_rcut_in_sigma = 5.0
+                                uf_spline_path = 
+                                uf_neighbor = kdtree
+                                uf_skin = 0.5
+                                uf_prepared_liquid = True
+                                uf_premelt_overheat = 1.6
+                                uf_premelt_T_melt = 0.0
+                                uf_premelt_steps_melt = 20000
+                                uf_premelt_steps_quench = 20000
+                                uf_premelt_steps_equil = 50000
+                                uf_premelt_damp = 0.1
+                    ConstrainedPotential:
+                                model = Standard
+                                C = 1.0
+                                delta = 1.0
+                                Rc = 0.0
+                    Block: False
+                    Restart:
+                                Activate = False
+                                PathH5 = Not set
+                    KLModify: False
+                    Jarzynski: False
+0:00:22.442 | PYMAB | ... Building Hessian by finite differences (order=2, step=1.000e-02 A, 384 d.o.f. over 400 worker(s)) ...
+0:00:22.681 | PYMAB | ... Hessian and spectrum written to ./mab_work/hessian.h5 ...
+0:00:22.963 | PYMAB | 
+        Estimator = tradTI (fixed-grid TI, App. A.1), Dynamic = OverdampedLangevin
+        400 workers x 4 cores -- lambda-parallel + replicate
+        
+0:00:22.964 | PYMAB | ... Starting thermalisation procedure ... (2.0e+02 steps)
+0:00:23.203 | PYMAB | ... Finishing thermalisation procedure ...
+0:00:23.203 | PYMAB | 
+0:00:23.203 | PYMAB | ... Starting 2-4 reference pilot (1.0e+04 steps, 8 groups) ...
+0:06:08.509 | PYMAB | ... 2-4 fit (alpha=0.50): J_TI/V_c=0.0044  J_score/FF=0.0369  (ok) ...
+0:06:08.509 | PYMAB | ...   loss share: alpha*TI=0.0022 (10.3%)  (1-alpha)*score=0.0184 (86.7%)  reg=0.0006 (3.0%)  total=0.0213 ...
+0:06:08.550 | PYMAB | ... 2-4 reference written to ./mab_work/hessian_rescaled.h5 ...
+0:06:08.550 | PYMAB | ... 2-4 reference fitted; starting production (§3.6.6) ...
+0:06:08.550 | PYMAB | 
+0:06:08.552 | PYMAB | ... rank 0: sampling 2 lambda point(s) of 401 ...
+0:30:47.369 | PYMAB | 
+0:30:47.370 | PYMAB |     [FREE ENERGY RESULTS -- tradTI]
+0:30:47.370 | PYMAB |     U(q0) [0K static energy] = -540.2035693554321 eV
+0:30:47.370 | PYMAB |     F_ref = -250.70231651288992 eV
+0:30:47.370 | PYMAB |     A(1) = F(1) - F_ref = 1.0927610999450796 eV
+0:30:47.370 | PYMAB |     F(1) = F_ref + A(1) = -249.60955541294484 eV   (thermal, excl. U(q0))
+0:30:47.370 | PYMAB |     F_Helmholtz = U(q0) + F(1) = -789.813124768377 eV   (total absolute)
+0:30:47.370 | PYMAB |     sigma[F(1)] = 0.00392441241858443 eV
+########## ########## ########## ########## ########## ########## ########## ##########
+Execution Sum Up
+########## ########## ########## ########## ########## ########## ########## ##########
+Jobid     : 5114450
+Jobname   : BAh24_trad
+User      : marinica
+Account   : desdrmp@rome
+Limits    : time = 23:00:00 , memory/job = 1775 Mo
+Date      : submit = 08/07/2026 11:24:26 , start = 08/07/2026 11:24:27 , end = 09/07/2026 10:24:27
+Execution : partition = rome , QoS = normal , Comment = (null)
+Resources : ntasks = 1664 , cpus/task = 1 , ncpus = 1664 , nodes = 13
+   Nodes=irene[4205,4219,4248,4294,4416,4589,4595,4714,5203,5334,5365,5432,5434] CPU_IDs=0-255 Mem=227200 GRES=
+ 
+Memory / step 
+--------------
+                          Resident Size (Mo)                     Virtual Size (Go)
+JobID            Max     (Node:Task)       AveTask    Max  (Node:Task)            AveTask
+-----------      ------------------------  -------    --------------------------  -------
+5114450.extern       0 (            :   0)       0      0.00 (            :   0)    0.00
+5114450.batch     1251 (irene4205   :   0)       5      1.00 (irene4205   :   0)    1.00
+
+Accounting / step 
+------------------
+
+JobID           JobName                  Ntasks  Ncpus Nnodes  Layout       Elapsed               User         System     Eff  State
+------------    ------------             ------  ----- ------  -------      -------               -------      ------     ---  -----
+5114450         BAh24_trad                    -   1664     13        -     00:32:01   (100%)            -            -      -  -
+5114450.batch   batch                         1    128      1  Unknown     00:32:01   (100%)     00:00:00     00:00:00      0  RUNNING
+5114450.extern  extern                       13   1664     13  Unknown     00:32:01 (100.0%)     00:00:00     00:00:00      0  RUNNING
+5114450.0       python                     1600   1600     13   BBlock     00:31:23  (98.0%)  33-23:33:46     05:22:28   98.0  COMPLETED
+########## ########## ########## ########## ########## ########## ########## ##########

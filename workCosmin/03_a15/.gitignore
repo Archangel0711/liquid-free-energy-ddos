@@ -1,0 +1,4 @@
+# Regenerable heavy outputs (keep small *_*.dat result tables)
+output/*.pkl
+output/*.log
+output/dm_*.dat

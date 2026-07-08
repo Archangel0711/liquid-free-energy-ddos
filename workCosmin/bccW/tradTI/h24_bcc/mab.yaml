@@ -1,0 +1,104 @@
+# ============================================================================
+# BABF free energy of a self-interstitial atom (SIA) in bcc Fe -- <111> dumbbell.
+# System: Fe bcc 4x4x4 + 1 interstitial = 129 atoms, box 11.4212 A, EAM Fe_AM05.
+# The input geometry (111.lmp, converted from 111.gin) is a guessed dumbbell and
+# is NOT at a force minimum -> it is RELAXED first (Minimization below) so the
+# BABF reference q^0 and the harmonic Hessian are built about the true minimum.
+# Every option is annotated; see the repo-root mab.yaml and docs/readme_babf.md.
+# Run:  conda activate md_lammps;  mpirun -np 4 python ../../../run_MAB.py -p mab.yaml
+# ============================================================================
+Parameters:
+
+  # --- Estimator (docs/readme_estimators.md) -------------------------------
+  Estimator: tradTI          # BABF (default) | tradTI (App. A.1) | tradABF (App. A.2)
+
+  # --- MPI / RNG -----------------------------------------------------------
+  CoresPerWorker: 4        # MPI ranks per LAMMPS walker; nWorkers = nProcs / CoresPerWorker
+  GlobalSeed: 14237519     # base RNG seed; walker w uses GlobalSeed*(w+1)
+  Verbose: false           # verbose logging / LAMMPS echo
+  LogLammps: false         # write per-walker log.lammps.<rank>
+
+  # --- Thermodynamics ------------------------------------------------------
+  Temperature: 3000.0       # temperature [K]  (beta = 1/(kB T))
+
+  # --- Pre-sampling minimisation of the input geometry ---------------------
+  # Relax the SIA dumbbell to a force minimum BEFORE sampling, so q^0 = x_reference
+  # (and the Harmonic Hessian about it) is the relaxed defect, not the guess.
+  Minimization: true       # enable the one-shot relaxation     | alternatives: false
+  min_forces: 5.0e-3       # force convergence ftol [eV/Angstrom] (stop when |f|_max < ftol)
+                           #   alternatives: any positive float (1e-3 tighter, 1e-1 looser)
+  min_style: cg            # LAMMPS minimiser                    | alternatives: hftn, sd, fire
+  min_maxiter: 10000       # max minimiser iterations           | alternatives: any int
+  min_maxeval: 100000      # max force/energy evaluations       | alternatives: any int
+  min_save_config: true    # write the minimised configuration  | alternatives: false
+  min_format: extxyz       # saved format                       | alternatives: xyz, lammps-data
+  min_savepath: minimized_bcc   # base name under WorkingDirectory (extension added)
+
+  # --- Alchemical lambda grid:  U_lambda = (1-s)*U_ref + s*U_target ---------
+  LambdaGrid:
+    Min: 0.0               # lambda at the reference end
+    Max: 1.0               # lambda at the target end
+    Number: 400            # number of bins in [Min, Max)   | more = finer integration
+    Rbuffer: 0.0           # extra lambda range each side    | > 0 to pad the grid
+    NumberBuffer: 0        # bins inside each buffer region  | int > 0 (needs Rbuffer > 0)
+
+  # --- Stochastic dynamics -------------------------------------------------
+  Dynamic: OverdampedLangevin   # integrator | alternatives: ImpliciteVerlet, BAOAB
+  DeltaT: 0.002            # time step [ps]   (smaller = more stable; defect modes are stiff)
+  Friction: 100.0          # friction gamma [1/ps]
+
+  # --- Reference model  U_ref(q) -------------------------------------------
+  # Harmonic (full Hessian) is the right reference for a defect basin: the
+  # Hessian is built by finite differences about the *minimised* q^0 and stored
+  # in hessian.h5; BABF then integrates from this harmonic crystal+defect.
+  ReferenceModel:
+    model: Harmonic_24     # full-Hessian reference | alternatives: Einstein, Harmonic, Harmonic_Rescale, Harmonic_24
+    get_hessian: compute   # build the Hessian by finite differences (writes HessianPath)
+                           #   alternatives: read (reuse an existing hessian.h5)
+    step_displacement: 0.01   # finite-difference step h [Angstrom]
+    hessian_order: 2          # 2 = central difference | alternatives: 1 = forward (faster)
+    HessianPath: hessian.h5   # Hessian + spectrum file (under WorkingDirectory if relative)
+    omega: 5.0               # Einstein frequency [THz] -- only used by model: Einstein
+
+  # --- Constrained / "block" BABFc (optional; off for a single SIA) --------
+  Block: false             # enable constrained BABFc (adds A_b(1) + sigma[F_b(1)])
+  ConstrainedPotential:    # only used when Block: true
+    model: Standard
+    C: 1.0
+    delta: 1.0
+    Rc: 0.0
+
+  # --- Sampling schedule ---------------------------------------------------
+  ThermalisationStep: 200     # burn-in steps (reference dynamics; A_n not updated)
+  StochasticSteps: 50000      # production steps (more = better converged)
+  WeightsTrajectory: linear   # history weight w_n: 1 = constant (default); linear; quadratic
+  TI_formalism: lambda_linear  # alchemical schedule s(lambda): lambda_linear | lambda_23
+  GatherStep: 10              # MPI reduce + share the bias every N steps
+  WritingStep: 1000           # HDF5 dump + screen diagnostic every N steps
+  WorkingDirectory: ./mab_work   # output dir for mab.h5, hessian.h5, minimized_111.extxyz
+
+  # --- Restart / variants (optional) ---------------------------------------
+  Restart:
+    Activate: false
+    PathH5: Not set
+  KLModify: false
+  Jarzynski: false
+
+Pathways:
+  Configuration: ../../../../inputs/out_W_bcc_444.lmp
+  Potential: ../../../../inputs/X_W.snapcoeff
+  Species: W
+
+Scripts:
+  Inputs: |                # LAMMPS setup; %Configuration% %Potential% %Species% are substituted
+    units metal
+    atom_style atomic
+    atom_modify map array sort 0 0.0
+    read_data  %Configuration%
+    pair_style    snap
+    pair_coeff * * %Potential%  ../../../../inputs/D.snapparam  %Species%
+    group      %Species% type 1
+    mass       1   183.85
+    run 0
+    thermo 10
+    run 0
