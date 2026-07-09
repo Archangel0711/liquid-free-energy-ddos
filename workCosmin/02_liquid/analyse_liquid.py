@@ -34,15 +34,15 @@ os.chdir(SCRIPT_DIR)
 from DescriptorDOS import DDOSAnalyzer
 
 ELEMENT = "W"
-STRUCTURE = "bcc"
+STRUCTURE = "liquid"
 MASS = 183.84  # amu
 
 parser = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-parser.add_argument("--isosurface", default="Hessian",
+parser.add_argument("--isosurface", default="Kinetic",
                     help="which sampled data set to analyse (matches run_bcc.py)")
 parser.add_argument("--Tmin", type=float, default=100.0)
-parser.add_argument("--Tmax", type=float, default=4000.0)
+parser.add_argument("--Tmax", type=float, default=5000.0)
 parser.add_argument("--nT", type=int, default=30)
 parser.add_argument("--match-order", type=int, default=7)
 parser.add_argument("--match-type", default="chebyshev")

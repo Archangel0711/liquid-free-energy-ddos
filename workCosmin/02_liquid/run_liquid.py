@@ -65,23 +65,23 @@ def is_running_with_mpi():
 #  Physical / numerical configuration for bcc W
 # ----------------------------------------------------------------------------
 ELEMENT = "W"
-STRUCTURE = "bcc"
+STRUCTURE = "liquid"
 MASS = 183.84  # amu
 MODEL = "W"  # -> models/W/params.yaml
 # reference volume per atom for bcc W (see old run_bcc_test.py: V_target/atom)
-V_TARGET_PER_ATOM = 15.52976221327011
+V_TARGET_PER_ATOM = 17.05954816708511
 
 parser = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-parser.add_argument("--isosurface", default="Hessian",
+parser.add_argument("--isosurface", default="Kinetic",
                     choices=["Hessian", "Kinetic", "DynamicalHessian", "KineticHessian"],
                     help="isosurface / reference used for sampling")
 parser.add_argument("--calls", type=int, default=400,
                     help="TOTAL force calls per isosurface value (split over MPI ranks)")
-parser.add_argument("--nalpha", type=int, default=15,
+parser.add_argument("--nalpha", type=int, default=20,
                     help="number of isosurface (alpha) grid points")
 parser.add_argument("--amin", type=float, default=0.5, help="min isosurface value")
-parser.add_argument("--amax", type=float, default=4.0, help="max isosurface value")
+parser.add_argument("--amax", type=float, default=6.0, help="max isosurface value")
 parser.add_argument("--append", action="store_true",
                     help="append to / combine with existing data")
 parser.add_argument("--verbose", action="store_true")
@@ -106,7 +106,7 @@ strain_list = [0.0]  # sample at the reference volume only
 # model configuration (lammps_input_script + pair_coeff), paths relative to here
 extra_params = yaml.safe_load(open(f"models/{MODEL}/params.yaml"))
 
-input_configuration = f"structures/{ELEMENT}-{STRUCTURE}2.data"
+input_configuration = f"structures/{ELEMENT}-{STRUCTURE}.data"
 assert os.path.exists(input_configuration), f"{input_configuration} not found!"
 
 dump_path = "output"
