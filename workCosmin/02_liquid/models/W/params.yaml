@@ -1,0 +1,7 @@
+# Model configuration for bcc W (SNAP), new-style DescriptorDOS.
+# Paths are relative to the 01_bcc working directory (where run_bcc.py is run).
+# These are merged into the DDOSManager kwargs via **extra_params.
+{
+  lammps_input_script : "models/W/in.lammps",
+  pair_coeff          : "models/W/X_W.snapcoeff models/W/D.snapparam X",
+}

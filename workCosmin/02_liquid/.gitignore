@@ -1,0 +1,6 @@
+# Regenerable heavy outputs (produced by run_bcc.py / analyse_bcc.py)
+output/*.pkl
+output/dm_*.dat
+output/*.log
+# keep the small human-readable results:
+!output/free_energy_W_bcc.dat
