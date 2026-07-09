@@ -1,0 +1,147 @@
+# ============================================================================
+# Scaled Uhlenbeck-Ford (sUF) liquid reference (docs/readme_uf.md), Fe at 2500 K.
+# - Reference Hamiltonian: U_ref(q) = U_UF^(p)(q) + U_EAM(q^0),
+#   with the cohesive shift U_EAM(q^0) added to keep p_A(lambda|q) broad
+#   (the shift cancels in F(1) = F_ref + A(1); docs/readme_uf.md §10).
+# - F_ref = N kT [ ln(rho Lambda^3) - 1 + f_exc^(p)(x) ] + U_EAM(q^0),
+#   with f_exc^(p)(x) loaded from a cubic-spline JSON
+#   (mab/reference/data/uf/uf_p<p>.json -- only p=1 is bundled;
+#   generate p in {25,50,75,100} from the paper's ufGenerator.py).
+# - This is a code-path test, not a physics result: p=1 has a divergent
+#   driving force near lambda=0 (paper Fig. 8). Use p >= 50 for real runs.
+# ============================================================================
+Parameters:
+  Estimator: BABF       # standard ABF-BIN (App. A.2) | alternatives: BABF (default), tradTI
+  CoresPerWorker: 4        # MPI ranks per walker        | alternatives: any divisor of nProcs
+  GlobalSeed: 14237519     # base RNG seed               | alternatives: any positive integer
+  Temperature: 5000.0      # temperature [K]; sets beta = 1/(kB T) in U_UF^(p)
+                           # well above Fe Tm ~ 1810 K   | alternatives: any positive float
+  LambdaGrid:
+    Min: 0.0               # reference end of lambda     | alternatives: any float (usually 0.0)
+    Max: 1.0               # target end of lambda        | alternatives: any float (usually 1.0)
+    Rbuffer: 0.0           # extra lambda padding         | alternatives: > 0.0
+    NumberBuffer: 0        # bins per buffer              | alternatives: int > 0 (needs Rbuffer>0)
+    Number: 1000            # bins in [Min, Max)           | alternatives: any int (more = finer integration)
+  Verbose: false           # verbose logging              | alternatives: true
+  LogLammps: false         # per-walker log.lammps.<rank> | alternatives: true
+
+  Dynamic: OverdampedLangevin   # integrator              | alternatives: ImpliciteVerlet, BAOAB
+                                # (OverdampedLangevin is the safest choice near lambda=0
+                                #  because sUF forces grow as r -> 0; see readme_uf.md §8)
+  DeltaT: 0.001            # time step [ps]; smaller than the solid case for sUF stability
+                           #                              | alternatives: any positive float
+  Friction: 100.0          # friction gamma [1/ps]        | alternatives: any positive float
+
+  ReferenceModel:
+    model: sUF             # scaled Uhlenbeck-Ford liquid (docs/readme_uf.md)
+                           # | alternatives: Einstein, Harmonic, Harmonic_Rescale, Harmonic_24
+    # --- sUF-specific keys (see docs/readme_uf.md §3-§7) -------------------
+    uf_p: 100              # scaling exponent p (paper Eq. 18). Stiffens the sUF potential so
+                           # atoms cannot drift to close contact -> no driving-force divergence.
+                           # The forces are analytical at any p; the f_exc^(p) spline is only
+                           # needed for the *excess* part of F_ref. No uf_p100.json is bundled,
+                           # so the run prints "[sUF] WARNING: f_exc spline missing" and F_ref
+                           # contains only the ideal-gas piece -- BABF dynamics are unaffected.
+                           # | alternatives: 1 (smoke test only -- BABF diverges, paper Fig. 8a);
+                           #                 25, 50, 75 (need the paper's ufGenerator.py to ship
+                           #                 the spline; same dynamics behaviour as p=100).
+    uf_x: 0.7              # reduced density x = b*rho (paper Eq. 16); sigma derived
+                           # from x and rho via sigma = (2x / pi^{3/2} rho)^{1/3}
+                           # | alternatives: 0.2-1.0 typical; outside [0, 4] -> spline range warning
+    uf_sigma: 0.0          # explicit length scale [Angstrom]; > 0 overrides uf_x and the
+                           # implied x = b*rho is recomputed (warning if x notin [0,4])
+                           # | alternatives: any positive float
+    uf_rcut: 0.0           # explicit cut-off [Angstrom]; > 0 overrides uf_rcut_in_sigma
+                           # | alternatives: any positive float (the potential is left unshifted)
+    uf_rcut_in_sigma: 3.5  # default ratio rc/sigma when uf_rcut == 0 (paper §III A)
+                           # | alternatives: 4.0-5.0 typically; > 5.0 gives no improvement
+    uf_spline_path: ''     # cubic-spline JSON for f_exc^(p)(x); '' auto-resolves
+                           # mab/reference/data/uf/uf_p<p>.json
+                           # | alternatives: any path; if missing, F_ref drops the
+                           #                 excess piece and emits a warning
+    uf_neighbor: kdtree    # pair-list backend
+                           # | alternatives: lammps (reserved -- LAMMPS-table backend not yet wired)
+    uf_skin: 0.5           # Verlet skin [Angstrom]; the neighbour list is rebuilt when the
+                           # maximum atom displacement since the last build exceeds skin/2
+                           # | alternatives: any positive float (smaller = more rebuilds,
+                           #                 larger = more pairs in the inner loop)
+
+    # Pre-equilibration of the input geometry.
+    # Pathways.Configuration below is the *prepared* equilibrated Fe liquid
+    # at 2500 K (generated once by tools/prepare_uf_liquid.py from the cold
+    # BCC lattice), so we set uf_prepared_liquid: true and skip the pre-melt
+    # -- subsequent runs save the ~30 s NVT schedule per walker.
+    # If you point Configuration at the cold BCC lattice instead
+    # (out_Fe_bcc_444.lmp), flip this to false and the uf_premelt_* keys
+    # below drive an in-ScaledUFSetup melt+quench+equilibrate before BABF.
+    uf_prepared_liquid: false  # if true, skip the pre-melt schedule and take Configuration as q^0 directly
+                                 # | alternatives: false (default; run the pre-melt schedule once to prepare the liquid)
+                           # | alternatives: false (let ScaledUFSetup melt the input first)
+    uf_premelt_overheat: 2.0     # T_melt = 1.6 * Temperature (ignored if uf_premelt_T_melt > 0)
+                                 # | alternatives: 1.5-2.0 typically
+    uf_premelt_T_melt: 0.0       # explicit melt temperature [K]; > 0 overrides uf_premelt_overheat
+                                 # | alternatives: any positive float (e.g. 4000.0 for Fe at 2500 K)
+    uf_premelt_steps_melt: 10000      # NVT steps at T_melt        | alternatives: any int >= 0
+    uf_premelt_steps_quench: 10000    # NVT steps from T_melt -> T | alternatives: any int >= 0
+    uf_premelt_steps_equil: 20000     # NVT steps holding at T     | alternatives: any int >= 0
+    uf_premelt_damp: 0.1   # Nose-Hoover damping [ps] for the pre-melt NVT
+    uf_premelt_dump: 'toto.dump'   # default lammps dump file format 
+
+  # --- Constrained / "block" BABFc -----------------------------------------
+  # sUF is incompatible with Block: true (BABFc is built around a defect
+  # minimum and is not meaningful for a homogeneous liquid). ScaledUFSetup
+  # raises ValueError if Block: true is combined with model: sUF.
+  Block: false             # | alternatives: false (forced for model: sUF)
+  ConstrainedPotential:    # ignored when Block: false
+    model: Standard
+    C: 1.0
+    delta: 1.0
+
+  # --- Sampling schedule ---------------------------------------------------
+  ThermalisationStep: 0    # burn-in steps (driven by U_ref forces). For sUF, pyMAB's
+                           # thermalisation uses *only* the sUF forces; running many
+                           # steps lets atoms drift close enough that EAM blows up at
+                           # the start of production. Pre-equilibrate the liquid
+                           # externally (NVT melt in LAMMPS) and set this to 0, or
+                           # use a small value (~ 100) for a soft restart.
+                           # | alternatives: any int >= 0
+  StochasticSteps: 100000   # production steps              | alternatives: any int
+  WeightsTrajectory: linear     # history weight on all BABF averages (eqs 1.18-1.20)
+                           # | 1 = constant (eq 1.20, default); linear = n/N (eq 1.19);
+                           #   quadratic = [sin(pi n/2N - pi/2)+1](n/N)^2 (eq 1.18)
+  TI_formalism: lambda_linear       # alchemical schedule s(lambda) in U_lambda = (1-s) U_ref + s U_target
+                                # | lambda_linear (default): s(lambda) = lambda, s'(lambda) = 1
+                                # | lambda_23 : s(lambda) = 3 lambda^2 - 2 lambda^3 (smoothstep);
+                                #               s'(0) = s'(1) = 0 -- damps endpoint rare-event variance
+                                #               (docs/readme_uf.md §11/§12.3.4). A(1) is invariant.
+  GatherStep: 200           # MPI reduce/share period       | alternatives: any int > 0
+  WritingStep: 500         # HDF5 + screen period          | alternatives: any int > 0
+  WorkingDirectory: ./mab_work   # output dir            | alternatives: any path
+
+  # --- Restart / variants --------------------------------------------------
+  Restart:
+    Activate: false        # reload accumulators from a previous run | alternatives: true
+    PathH5: Not set        # source HDF5 when Activate: true         | e.g. ./mab_work/mab.h5
+  KLModify: false          # KL-divergence reweighting variant       | alternatives: true
+  Jarzynski: false         # Jarzynski work correction (block mode)  | alternatives: true
+
+Pathways:
+  Configuration: ../../inputs/out_W_liquid_444.lmp          # equilibrated Fe liquid at 2500 K
+  #PotentialD:  ../../../../inputs/D.snapparam
+  Potential: ../../inputs/X_W.snapcoeff
+  Species: W
+
+Scripts:
+  Inputs: |                # LAMMPS setup; %Configuration% %Potential% %Species% are substituted
+    units metal
+    atom_style atomic
+    atom_modify map array sort 0 0.0
+    read_data  %Configuration%
+    pair_style    snap
+    pair_coeff * * %Potential%  ../../inputs/D.snapparam  %Species%
+    group      %Species% type 1
+    mass       1   183.85
+    run 0
+    thermo 10
+    run 0
+

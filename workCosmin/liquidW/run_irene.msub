@@ -1,0 +1,44 @@
+#!/bin/bash
+#MSUB -r liqW
+#MSUB -n 1600
+#MSUB -c 1
+#MSUB -q rome
+##MSUB -Q test
+#MSUB -T 20000
+#MSUB -o slurm-BAh24_110-%J.out
+#MSUB -e slurm-BAh24_110-%J.err
+##MSUB -A gen6821
+#MSUB -A  desdrmp
+#MSUB -m scratch,work,store
+
+# ===========================================================================
+# pyMAB BABF run for the bcc-Fe <110> SIA dumbbell (h24 reference)
+# on Irene (CCRT/CEA). 400 MPI walkers (CoresPerWorker: 4 in mab.yaml, 1600 MPI ranks total)
+# across up to 13 "rome" nodes (128 physical cores, AMD EPYC, 8x16 cores).
+#
+# Submit from this directory:   ccc_msub run_irene.msub
+# ===========================================================================
+set -euo pipefail
+
+source /etc/profile.d/modules.sh
+source ${HOME}/environements_2026
+module load python3/stable
+
+FLOW=/ccc/work/cont002/gen6821/marinica/Flow/Src
+VENV="${FLOW}/pyMAB.git/venv"
+RUN_MAB="${FLOW}/pyMAB.git/run_MAB.py"
+
+# shellcheck disable=SC1091
+source "${VENV}/bin/activate"
+export OMP_NUM_THREADS=1
+
+# python3/stable module bundles an old libstdc++ (GLIBCXX) ahead of the
+# gnu/13.2.0 one liblammps.so was built against; force the newer one via
+# LD_PRELOAD (LD_LIBRARY_PATH alone does not win over pythons RPATH).
+export LD_PRELOAD=/ccc/products/gcc-13.2.0/system/default/lib64/libstdc++.so.6
+
+cd "${BRIDGE_MSUB_PWD}"
+echo "Host: $(hostname)  NProc: ${BRIDGE_MSUB_NPROC}  Dir: $PWD"
+python -c "import lammps, mpi4py; print(\"lammps + mpi4py import OK\")"
+
+ccc_mprun python "${RUN_MAB}" -p mab.yaml
